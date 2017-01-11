@@ -35,21 +35,35 @@
 
 #include "HX711.h"
 
-#define DOUT  3
-#define CLK  2
+void help(void);
+
+#define DOUT  11
+#define CLK  10
+
+// default type is LBS (last option within if else macro
+#define TYPE_KG 1
+#define TYPE_LBS 2
+#define SELECTED_TYPE TYPE_KG
+
 
 HX711 scale(DOUT, CLK);
 
-float calibration_factor = -7050; //-7050 worked for my 440lb max scale setup
+#if SELECTED_TYPE == TYPE_KG
+  //-7050 / 0.453592 (1 lbs = 0.453592 kg). initial calibration factor
+  float calibration_factor = -12000; // -12653 calibration factor found 
+  char *weightUnitText = " kg";
+#else
+  float calibration_factor = -7050; //-7050 worked for my 440lb max scale setup
+  char *weightUnitText = " lbs";
+#endif
+
+// give time to read
+int readdelay = 10000; // msec
+
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println("HX711 calibration sketch");
-  Serial.println("Remove all weight from scale");
-  Serial.println("After readings begin, place known weight on scale");
-  Serial.println("Press + or a to increase calibration factor");
-  Serial.println("Press - or z to decrease calibration factor");
-
+  help();
+  
   scale.set_scale();
   scale.tare();	//Reset the scale to 0
 
@@ -63,8 +77,8 @@ void loop() {
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
 
   Serial.print("Reading: ");
-  Serial.print(scale.get_units(), 1);
-  Serial.print(" lbs"); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
+  Serial.print(scale.get_units(3), 1);
+  Serial.print(weightUnitText); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
   Serial.print(" calibration_factor: ");
   Serial.print(calibration_factor);
   Serial.println();
@@ -74,7 +88,59 @@ void loop() {
     char temp = Serial.read();
     if(temp == '+' || temp == 'a')
       calibration_factor += 10;
-    else if(temp == '-' || temp == 'z')
+    else if(temp == 's')
+      calibration_factor += 100;
+    else if(temp == 'd')
+      calibration_factor += 1000;
+    if(temp == '+' || temp == 'z')
       calibration_factor -= 10;
+    else if(temp == 'x')
+      calibration_factor -= 100;
+    else if(temp == 'c')
+      calibration_factor -= 1000;
+
+    if (temp == 't') 
+      scale.tare();  // "resets" the scale to 0 (works also with weight added to scale)
+
+    // output help  and delay
+    if (temp == '?') {
+      help();
+    }
+
+    // output info about scale
+    if (temp == 'i') {
+      // scale value is used to return weight in grams, kg, ounces, whatever (is rawvalue/ ???)
+      Serial.print("scaling val: ");
+      Serial.println(scale.get_scale());
+
+      Serial.print("current offset: ");
+      Serial.println(scale.get_offset());
+
+      Serial.print("current val : ");
+      Serial.println(scale.read_average());
+
+      Serial.print("current value (read_average() - Offset): ");
+      Serial.println(scale.get_value());
+
+      Serial.print("get units (get_value/OFFSET): ");
+      Serial.println(scale.get_units());
+
+      delay(readdelay);
+    }
   }
 }
+
+void help() {
+  Serial.begin(9600);
+  Serial.println("HX711 calibration sketch");
+  Serial.println("Remove all weight from scale");
+  Serial.println("After readings begin, place known weight on scale");
+  Serial.println("Press +(+10) or a(+10),s(+100),d(+1000) to increase calibration factor");
+  Serial.println("Press -(-10) or z(-10),x(-100),c(-1000) to decrease calibration factor");
+  Serial.println("Press t for resetting base");
+  Serial.println("Press i for scale config info");
+  Serial.println("press ? for help");
+  
+  delay(readdelay);
+}
+
