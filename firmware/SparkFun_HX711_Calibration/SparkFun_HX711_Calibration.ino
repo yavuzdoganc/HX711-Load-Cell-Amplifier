@@ -36,6 +36,7 @@
 #include "HX711.h"
 
 void help(void);
+void showScaleInfo(void);
 
 #define DOUT  11
 #define CLK  10
@@ -99,16 +100,32 @@ void loop() {
     else if(temp == 'c')
       calibration_factor -= 1000;
 
-    if (temp == 't') 
-      scale.tare();  // "resets" the scale to 0 (works also with weight added to scale)
-
-    // output help  and delay
-    if (temp == '?') {
+    if (temp == 't') {
+      // "resets" the scale to 0 (works also with weight added to scale)
+      scale.tare();  
+    } else if (temp == '?') {
       help();
+    } else if (temp == 'i') {
+      showScaleInfo();
     }
+  }
+}
 
-    // output info about scale
-    if (temp == 'i') {
+void help() {
+  Serial.begin(9600);
+  Serial.println("HX711 calibration sketch");
+  Serial.println("Remove all weight from scale");
+  Serial.println("After readings begin, place known weight on scale");
+  Serial.println("Press +(+10) or a(+10),s(+100),d(+1000) to increase calibration factor");
+  Serial.println("Press -(-10) or z(-10),x(-100),c(-1000) to decrease calibration factor");
+  Serial.println("Press t for resetting base");
+  Serial.println("Press i for scale config info");
+  Serial.println("press ? for help");
+  
+  delay(readdelay);
+}
+
+void showScaleInfo() {
       // scale value is used to return weight in grams, kg, ounces, whatever (is rawvalue/ ???)
       Serial.print("scaling val: ");
       Serial.println(scale.get_scale());
@@ -126,21 +143,5 @@ void loop() {
       Serial.println(scale.get_units());
 
       delay(readdelay);
-    }
-  }
-}
-
-void help() {
-  Serial.begin(9600);
-  Serial.println("HX711 calibration sketch");
-  Serial.println("Remove all weight from scale");
-  Serial.println("After readings begin, place known weight on scale");
-  Serial.println("Press +(+10) or a(+10),s(+100),d(+1000) to increase calibration factor");
-  Serial.println("Press -(-10) or z(-10),x(-100),c(-1000) to decrease calibration factor");
-  Serial.println("Press t for resetting base");
-  Serial.println("Press i for scale config info");
-  Serial.println("press ? for help");
-  
-  delay(readdelay);
 }
 
