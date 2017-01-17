@@ -51,7 +51,7 @@ HX711 scale(DOUT, CLK);
 
 #if SELECTED_TYPE == TYPE_KG
   //-7050 / 0.453592 (1 lbs = 0.453592 kg). initial calibration factor
-  float calibration_factor = -12000; // -12653 calibration factor found 
+  float calibration_factor = -13080; // -12653 calibration factor found 
   char *weightUnitText = " kg";
 #else
   float calibration_factor = -7050; //-7050 worked for my 440lb max scale setup
@@ -78,7 +78,7 @@ void loop() {
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
 
   Serial.print("Reading: ");
-  Serial.print(scale.get_units(7), 1);
+  Serial.print(scale.get_units(9), 3);
   Serial.print(weightUnitText); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
   Serial.print(" calibration_factor: ");
   Serial.print(calibration_factor);
