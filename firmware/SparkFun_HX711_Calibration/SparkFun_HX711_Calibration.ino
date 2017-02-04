@@ -78,7 +78,7 @@ void loop() {
   scale.set_scale(calibration_factor); //Adjust to this calibration factor
 
   Serial.print("Reading: ");
-  Serial.print(scale.get_units(9), 3);
+  Serial.print(scale.get_units(17), 3);
   Serial.print(weightUnitText); //Change this to kg and re-adjust the calibration factor if you follow SI units like a sane person
   Serial.print(" calibration_factor: ");
   Serial.print(calibration_factor);
